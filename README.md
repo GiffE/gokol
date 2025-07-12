@@ -7,7 +7,7 @@
 
 # Gokol
 
-This package provides Go bindings for the Sokol C libraries ([https://github.com/floooh/sokol](https://github.com/floooh/sokol)). Sokol is a cross-platform, C-based library for game development, offering graphics, audio, and input functionality. Hopefully this makes it easy to use Sokol within your Go projects.
+This package provides Go bindings for the Sokol C libraries ([https://github.com/floooh/sokol](https://github.com/floooh/sokol)). Sokol is a cross-platform, C-based library for game development, offering graphics, audio, and input functionality.
 
 ## Status
 
