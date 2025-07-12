@@ -1,6 +1,5 @@
 <p align="center">
-    <img src="assets/logo_full_large.png" style="width: 60%" /><br/><br/>Simple
-    cross-platform bindings for the
+    <img src="assets/logo_full_large.png" style="width: 60%" /><br/><br/>Unofficial bindings for the
     <a href="https://github.com/floooh/sokol">SOKOL</a>
      libraries in Go.<br/><br/>
 </p>
