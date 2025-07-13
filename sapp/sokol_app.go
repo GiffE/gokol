@@ -41,6 +41,10 @@ extern void cb_sokol_Event(sapp_event* event, uintptr_t userdata);
 #cgo nocallback sapp_set_window_title
 #cgo nocallback sapp_get_num_dropped_files
 #cgo nocallback sapp_get_dropped_file_path
+#cgo nocallback sapp_metal_get_device
+#cgo nocallback sapp_metal_get_current_drawable
+#cgo nocallback sapp_metal_get_depth_stencil_texture
+#cgo nocallback sapp_metal_get_msaa_color_texture
 
 #cgo noescape sapp_isvalid
 #cgo noescape sapp_widthf
@@ -72,6 +76,10 @@ extern void cb_sokol_Event(sapp_event* event, uintptr_t userdata);
 #cgo noescape sapp_set_window_title
 #cgo noescape sapp_get_num_dropped_files
 #cgo noescape sapp_get_dropped_file_path
+#cgo noescape sapp_metal_get_device
+#cgo noescape sapp_metal_get_current_drawable
+#cgo noescape sapp_metal_get_depth_stencil_texture
+#cgo noescape sapp_metal_get_msaa_color_texture
 */
 import "C"
 import (
@@ -631,6 +639,24 @@ func GetNumDroppedFiles() int { return int(C.sapp_get_num_dropped_files()) }
 // gets the dropped file paths
 func GetDroppedFilePath(index int) string {
 	return C.GoString(C.sapp_get_dropped_file_path(C.int(index)))
+}
+
+// Metal: get bridged pointer to Metal device object
+func MetalGetDevice() unsafe.Pointer { return C.sapp_metal_get_device() }
+
+// Metal: get bridged pointer to MTKView's current drawable of type CAMetalDrawable
+func MetalGetCurrentDrawable() unsafe.Pointer {
+	return C.sapp_metal_get_current_drawable()
+}
+
+// Metal: get bridged pointer to MTKView's depth-stencil texture of type MTLTexture
+func MetalGetDepthStencilTexture() unsafe.Pointer {
+	return C.sapp_metal_get_depth_stencil_texture()
+}
+
+// Metal: get bridged pointer to MTKView's msaa-color-texture of type MTLTexture (may be null)
+func MetalGetMSAAColorTexture() unsafe.Pointer {
+	return C.sapp_metal_get_msaa_color_texture()
 }
 
 func tmpstring(s string) *C.char {

@@ -1,18 +1,48 @@
 package main
 
 import (
-	"fmt"
-
+	glue "github.com/GiffE/gokol/glue"
 	sapp "github.com/GiffE/gokol/sapp"
+	sg "github.com/GiffE/gokol/sg"
 )
+
+var passAction sg.PassAction
+
+func Init() {
+	sg.Setup(&sg.Desc{
+		Environment: glue.Environment(),
+	})
+
+	passAction = sg.PassAction{
+		Colors: [sg.MaxColorAttachments]sg.ColorAttachmentAction{
+			sg.ColorAttachmentAction{
+				LoadAction: sg.LoadActionClear,
+				ClearValue: sg.Color{R: 1.0, G: 0.0, B: 0.0, A: 1.0},
+			},
+		},
+	}
+}
+
+func Frame() {
+	sg.BeginPass(&sg.Pass{
+		Action:    passAction,
+		Swapchain: glue.Swapchain(),
+	})
+	sg.EndPass()
+	sg.Commit()
+}
+
+func Cleanup() {
+	sg.Shutdown()
+}
 
 func main() {
 	sapp.Run(&sapp.AppDesc{
 		Width:   800,
 		Height:  600,
-		Init:    func() { fmt.Println("initialize") },
-		Cleanup: func() { fmt.Println("cleanup") },
-		Frame:   func() {},
+		Init:    Init,
+		Cleanup: Cleanup,
+		Frame:   Frame,
 		Event:   func(e sapp.Event) {},
 	})
 }
