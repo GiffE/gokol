@@ -1,7 +1,6 @@
 package gokol
 
 /*
-#define SOKOL_NO_ENTRY
 #include "sokol_app.h"
 #include <stdlib.h>
 typedef void (*_sokolgo_void_callback)(uintptr_t userdata);
@@ -487,6 +486,7 @@ func Run(opts *AppDesc) {
 	var udata cgo.Handle
 	if userDataObj != nil {
 		udata = cgo.NewHandle(userDataObj)
+		defer udata.Delete()
 	}
 
 	desc := C.sapp_desc{

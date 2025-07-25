@@ -12,6 +12,9 @@ func Environment() sg.Environment {
 			DepthFormat: sg.PixelFormat(sapp.DepthFormat()),
 			SampleCount: sapp.SampleCount(),
 		},
+		// We could optimize these CGo call by using build
+		// versions.  Metal is obviously apple only.
+		// Or just get better syscalls in pure go version.
 		Metal: sg.MetalEnvironment{
 			Device: sapp.MetalGetDevice(),
 		},
@@ -19,7 +22,6 @@ func Environment() sg.Environment {
 		//   env.d3d11.device_context = sapp_d3d11_get_device_context();
 		//   env.wgpu.device = sapp_wgpu_get_device();
 	}
-
 }
 
 func Swapchain() sg.Swapchain {

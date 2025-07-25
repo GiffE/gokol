@@ -38,11 +38,11 @@ func Cleanup() {
 
 func main() {
 	sapp.Run(&sapp.AppDesc{
-		Width:   800,
-		Height:  600,
-		Init:    Init,
-		Cleanup: Cleanup,
-		Frame:   Frame,
-		Event:   func(e sapp.Event) {},
+		Width:       400,
+		Height:      300,
+		WindowTitle: "Clear (sokol app)",
+		Init:        Init,
+		Cleanup:     Cleanup,
+		Frame:       Frame,
 	})
 }
