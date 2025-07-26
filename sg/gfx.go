@@ -2,8 +2,6 @@ package sg
 
 /*
 #include "sokol_gfx.h"
-#define SOKOL_LOG_IMPL
-#include "sokol_log.h"
 #include <stdlib.h>
 
 #cgo nocallback sg_begin_pass
@@ -32,23 +30,6 @@ package sg
 #cgo noescape sg_draw
 #cgo nocallback sg_query_buffer_overflow
 #cgo noescape sg_query_buffer_overflow
-
-typedef void (*_sokolgo_log_callback)(
-	const char* tag,
-	uint32_t log_level,
-	uint32_t log_item_id,
-	const char* message_or_null,
-	uint32_t line_nr,
-	const char* filename_or_null,
-	void* user_data
-	);
-extern void cb_sokol_Log(char* tag,
-	uint32_t log_level,
-	uint32_t log_item_id,
-	char* message_or_null,
-	uint32_t line_nr,
-	char* filename_or_null,
-	void* user_data);
 */
 import "C"
 
@@ -58,11 +39,7 @@ import (
 	"unsafe"
 )
 
-// Meh, just needed for debugging.
-var internalLogger LogCallback
-
 func Setup(desc *Desc) {
-	internalLogger = desc.Logger
 	C.sg_setup(&C.sg_desc{
 		buffer_pool_size:                                C.int(desc.BufferPoolSize),
 		image_pool_size:                                 C.int(desc.ImagePoolSize),
@@ -91,9 +68,6 @@ func Setup(desc *Desc) {
 				device_context: desc.Environment.D3d11.DeviceContext,
 			},
 			wgpu: C.sg_wgpu_environment{device: desc.Environment.Wgpu.Device},
-		},
-		logger: C.sg_logger{
-			_func: (*[0]byte)(C.slog_func),
 		},
 	})
 }
