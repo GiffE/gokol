@@ -16,6 +16,10 @@ package sg
 #cgo noescape sg_isvalid
 #cgo nocallback sg_make_buffer
 #cgo noescape sg_make_buffer
+#cgo nocallback sg_make_image
+#cgo noescape sg_make_image
+#cgo nocallback sg_make_sampler
+#cgo noescape sg_make_sampler
 #cgo nocallback sg_make_shader
 #cgo noescape sg_make_shader
 #cgo nocallback sg_setup
@@ -155,6 +159,74 @@ func MakeBuffer[T any](desc *BufferDesc[T]) Buffer {
 	return Buffer{Id: uint32(C.sg_make_buffer(&sgDesc).id)}
 }
 
+func MakeImage[T any](desc *ImageDesc[T]) Image {
+	label, free := Strs(desc.Label)
+	defer free()
+	cdesc := C.sg_image_desc{
+		_type: C.sg_image_type(desc.Type),
+		usage: C.sg_image_usage{
+			render_attachment:  C.bool(desc.Usage.RenderAttachment),
+			storage_attachment: C.bool(desc.Usage.StorageAttachment),
+			immutable:          C.bool(desc.Usage.Immutable),
+			dynamic_update:     C.bool(desc.Usage.DynamicUpdate),
+			stream_update:      C.bool(desc.Usage.StreamUpdate),
+		},
+		width:        C.int(desc.Width),
+		height:       C.int(desc.Height),
+		num_slices:   C.int(desc.NumSlices),
+		num_mipmaps:  C.int(desc.NumMipmaps),
+		pixel_format: C.sg_pixel_format(desc.PixelFormat),
+		sample_count: C.int(desc.SampleCount),
+		label:        label[0],
+		// optionally inject backend-specific resources
+		//  uint32_t gl_textures[SG_NUM_INFLIGHT_FRAMES];
+		gl_texture_target: C.uint32_t(desc.GlTextureTarget),
+		//  const void* mtl_textures[SG_NUM_INFLIGHT_FRAMES];
+		d3d11_texture:              desc.D3D11Texture,
+		d3d11_shader_resource_view: desc.D3D11ShaderResourceView,
+		wgpu_texture:               desc.WgpuTexture,
+		wgpu_texture_view:          desc.WgpuTextureView,
+	}
+	for i, subi := range desc.Data.Subimage {
+		for j, subj := range subi {
+			if len(subj) == 0 {
+				continue
+			}
+			cdesc.data.subimage[i][j] = C.sg_range{
+				ptr:  unsafe.Pointer(&subj[0]),
+				size: C.size_t(unsafe.Sizeof(subj[0]) * uintptr(len(subj))),
+			}
+		}
+	}
+
+	return Image{Id: uint32(C.sg_make_image(&cdesc).id)}
+}
+
+func MakeSampler(desc *SamplerDesc) Sampler {
+	label, free := Strs(desc.Label)
+	defer free()
+	cdesc := C.sg_sampler_desc{
+		min_filter:     C.sg_filter(desc.MinFilter),
+		mag_filter:     C.sg_filter(desc.MagFilter),
+		mipmap_filter:  C.sg_filter(desc.MipmapFilter),
+		wrap_u:         C.sg_wrap(desc.WrapU),
+		wrap_v:         C.sg_wrap(desc.WrapV),
+		wrap_w:         C.sg_wrap(desc.WrapW),
+		min_lod:        C.float(desc.MinLod),
+		max_lod:        C.float(desc.MaxLod),
+		border_color:   C.sg_border_color(desc.BorderColor),
+		compare:        C.sg_compare_func(desc.Compare),
+		max_anisotropy: C.uint32_t(desc.MaxAnisotropy),
+		label:          label[0],
+		// optionally inject backend-specific resources
+		gl_sampler:    C.uint32_t(desc.GlSampler),
+		mtl_sampler:   desc.MtlSampler,
+		d3d11_sampler: desc.D3D11Sampler,
+		wgpu_sampler:  desc.WgpuSampler,
+	}
+	return Sampler{Id: uint32(C.sg_make_sampler(&cdesc).id)}
+}
+
 func MakeShader(desc *ShaderDesc) Shader {
 	strs, free := Strs(desc.Label, // 0
 		desc.VertexFunc.Entry,           // 1
@@ -192,7 +264,7 @@ func MakeShader(desc *ShaderDesc) Shader {
 			d3d11_target:   strs[8], // default: "vs_4_0" or "ps_4_0"
 		},
 	}
-	// Convert vertex attributes
+
 	for i, attr := range desc.Attrs {
 		attrStr, attrFree := Strs(attr.GlslName, attr.HlslSemName)
 		defer attrFree()
@@ -200,12 +272,10 @@ func MakeShader(desc *ShaderDesc) Shader {
 			base_type:      C.sg_shader_attr_base_type(attr.BaseType),
 			hlsl_sem_index: C.uint8_t(attr.HlslSemIndex),
 			glsl_name:      attrStr[0],
-			// TODO: yield these into the above alloc to reuse
-			hlsl_sem_name: attrStr[1],
+			hlsl_sem_name:  attrStr[1],
 		}
 	}
 
-	// Convert uniform blocks
 	for i, block := range desc.UniformBlocks {
 		sgUniformBlock := C.sg_shader_uniform_block{
 			stage:                 C.sg_shader_stage(block.Stage),
@@ -227,52 +297,50 @@ func MakeShader(desc *ShaderDesc) Shader {
 		sgShaderDesc.uniform_blocks[i] = sgUniformBlock
 	}
 
-	// Convert storage buffers
-	// for i, buffer := range desc.StorageBuffers {
-	// 	sgShaderDesc.storage_buffers[i] = C.sg_shader_storage_buffer{
-	// 		stage:                 C.sg_shader_stage(buffer.Stage),
-	// 		readonly:              C.bool(buffer.Readonly),
-	// 		hlsl_register_t_n:     C.uint8_t(buffer.HlslRegisterTN),
-	// 		hlsl_register_u_n:     C.uint8_t(buffer.HlslRegisterUN),
-	// 		msl_buffer_n:          C.uint8_t(buffer.MslBufferN),
-	// 		wgsl_group1_binding_n: C.uint8_t(buffer.WgslGroup1BindingN),
-	// 		glsl_binding_n:        C.uint8_t(buffer.GlslBindingN),
-	// 	}
-	// }
+	for i, buffer := range desc.StorageBuffers {
+		sgShaderDesc.storage_buffers[i] = C.sg_shader_storage_buffer{
+			stage:                 C.sg_shader_stage(buffer.Stage),
+			readonly:              C.bool(buffer.Readonly),
+			hlsl_register_t_n:     C.uint8_t(buffer.HlslRegisterTN),
+			hlsl_register_u_n:     C.uint8_t(buffer.HlslRegisterUN),
+			msl_buffer_n:          C.uint8_t(buffer.MslBufferN),
+			wgsl_group1_binding_n: C.uint8_t(buffer.WgslGroup1BindingN),
+			glsl_binding_n:        C.uint8_t(buffer.GlslBindingN),
+		}
+	}
 
-	// Convert images
-	// for i, image := range desc.Images {
-	// 	sgShaderDesc.images[i] = C.sg_shader_image{
-	// 		stage:                 C.sg_shader_stage(image.Stage),
-	// 		image_type:            C.sg_image_type(image.ImageType),
-	// 		sample_type:           C.sg_image_sample_type(image.SampleType),
-	// 		multisampled:          C.bool(image.Multisampled),
-	// 		hlsl_register_t_n:     C.uint8_t(image.HlslRegisterTN),
-	// 		msl_texture_n:         C.uint8_t(image.MslTextureN),
-	// 		wgsl_group1_binding_n: C.uint8_t(image.WgslGroup1BindingN),
-	// 	}
-	// }
+	for i, image := range desc.Images {
+		sgShaderDesc.images[i] = C.sg_shader_image{
+			stage:                 C.sg_shader_stage(image.Stage),
+			image_type:            C.sg_image_type(image.ImageType),
+			sample_type:           C.sg_image_sample_type(image.SampleType),
+			multisampled:          C.bool(image.Multisampled),
+			hlsl_register_t_n:     C.uint8_t(image.HlslRegisterTN),
+			msl_texture_n:         C.uint8_t(image.MslTextureN),
+			wgsl_group1_binding_n: C.uint8_t(image.WgslGroup1BindingN),
+		}
+	}
 
-	// Convert samplers
-	// for i, sampler := range desc.Samplers {
-	// 	sgShaderDesc.samplers[i] = C.sg_shader_sampler{
-	// 		stage:                 C.sg_shader_stage(sampler.Stage),
-	// 		sampler_type:          C.sg_sampler_type(sampler.SamplerType),
-	// 		hlsl_register_s_n:     C.uint8_t(sampler.HlslRegisterSN),
-	// 		msl_sampler_n:         C.uint8_t(sampler.MslSamplerN),
-	// 		wgsl_group1_binding_n: C.uint8_t(sampler.WgslGroup1BindingN),
-	// 	}
-	// }
+	for i, sampler := range desc.Samplers {
+		sgShaderDesc.samplers[i] = C.sg_shader_sampler{
+			stage:                 C.sg_shader_stage(sampler.Stage),
+			sampler_type:          C.sg_sampler_type(sampler.SamplerType),
+			hlsl_register_s_n:     C.uint8_t(sampler.HlslRegisterSN),
+			msl_sampler_n:         C.uint8_t(sampler.MslSamplerN),
+			wgsl_group1_binding_n: C.uint8_t(sampler.WgslGroup1BindingN),
+		}
+	}
 
-	// Convert image sampler pairs
-	// for i, pair := range desc.ImageSamplerPairs {
-	// 	sgShaderDesc.image_sampler_pairs[i] = C.sg_shader_image_sampler_pair{
-	// 		stage:        C.sg_shader_stage(pair.Stage),
-	// 		image_slot:   C.uint8_t(pair.ImageSlot),
-	// 		sampler_slot: C.uint8_t(pair.SamplerSlot),
-	// 		glsl_name:    tmpstring(pair.GlslName),
-	// 	}
-	// }
+	for i, pair := range desc.ImageSamplerPairs {
+		glslName, glslNameFree := Strs(pair.GlslName)
+		defer glslNameFree()
+		sgShaderDesc.image_sampler_pairs[i] = C.sg_shader_image_sampler_pair{
+			stage:        C.sg_shader_stage(pair.Stage),
+			image_slot:   C.uint8_t(pair.ImageSlot),
+			sampler_slot: C.uint8_t(pair.SamplerSlot),
+			glsl_name:    glslName[0],
+		}
+	}
 	return Shader{Id: uint32(C.sg_make_shader(&sgShaderDesc).id)}
 }
 
@@ -405,22 +473,6 @@ type Desc struct {
 }
 
 type LogCallback func()
-
-const (
-	InvalidId                 = 0
-	NumInflightFrames         = 2
-	MaxColorAttachments       = 4
-	MaxUniformBlockMembers    = 16
-	MaxVertexAttributes       = 16
-	MaxMipmaps                = 16
-	MaxTexturearrayLayers     = 128
-	MaxUniformBlockBindSlots  = 8
-	MaxVertexBufferBindSlots  = 8
-	MaxImageBindSlots         = 16
-	MaxSamplerBindSlots       = 16
-	MaxStorageBufferBindSlots = 8
-	MaxImageSamplerPairs      = 16
-)
 
 type (
 	Environment struct {
