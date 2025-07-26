@@ -151,6 +151,5 @@ func main() {
 		Cleanup:     Cleanup,
 		Frame:       Frame,
 		WindowTitle: "Buffer Offsets (sokol-app)",
-		Event:       func(e sapp.Event) {},
 	})
 }

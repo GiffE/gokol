@@ -128,6 +128,5 @@ func main() {
 		Cleanup:     Cleanup,
 		Frame:       Frame,
 		WindowTitle: "Quad (sokol-app)",
-		Event:       func(e sapp.Event) {},
 	})
 }

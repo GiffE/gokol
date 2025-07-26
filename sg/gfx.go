@@ -26,6 +26,8 @@ package sg
 #cgo noescape sg_apply_pipeline
 #cgo nocallback sg_apply_bindings
 #cgo noescape sg_apply_bindings
+#cgo nocallback sg_apply_uniforms
+#cgo noescape sg_apply_uniforms
 #cgo nocallback sg_draw
 #cgo noescape sg_draw
 #cgo nocallback sg_query_buffer_overflow
@@ -51,6 +53,8 @@ extern void cb_sokol_Log(char* tag,
 import "C"
 
 import (
+	"reflect"
+	"runtime"
 	"unsafe"
 )
 
@@ -216,38 +220,38 @@ func MakeShader(desc *ShaderDesc) Shader {
 	}
 	// Convert vertex attributes
 	for i, attr := range desc.Attrs {
-		attrStr, attrFree := Strs(attr.GlslName)
+		attrStr, attrFree := Strs(attr.GlslName, attr.HlslSemName)
 		defer attrFree()
 		sgShaderDesc.attrs[i] = C.sg_shader_vertex_attr{
 			base_type:      C.sg_shader_attr_base_type(attr.BaseType),
 			hlsl_sem_index: C.uint8_t(attr.HlslSemIndex),
 			glsl_name:      attrStr[0],
 			// TODO: yield these into the above alloc to reuse
-			// glsl_name:      tmpstring(attr.GlslName),
-			// hlsl_sem_name:  tmpstring(attr.HlslSemName),
+			hlsl_sem_name: attrStr[1],
 		}
 	}
 
 	// Convert uniform blocks
-	// for i, block := range desc.UniformBlocks {
-	// 	sgUniformBlock := C.sg_shader_uniform_block{
-	// 		stage:                 C.sg_shader_stage(block.Stage),
-	// 		size:                  C.uint32_t(block.Size),
-	// 		hlsl_register_b_n:     C.uint8_t(block.HlslRegisterBN),
-	// 		msl_buffer_n:          C.uint8_t(block.MslBufferN),
-	// 		wgsl_group0_binding_n: C.uint8_t(block.WgslGroup0BindingN),
-	// 		layout:                C.sg_uniform_layout(block.Layout),
-	// 	}
-
-	// 	for j, uniform := range block.GlslUniforms {
-	// 		sgUniformBlock.glsl_uniforms[j] = C.sg_glsl_shader_uniform{
-	// 			_type:       C.sg_uniform_type(uniform.Type),
-	// 			array_count: C.uint16_t(uniform.ArrayCount),
-	// 			glsl_name:   tmpstring(uniform.GlslName),
-	// 		}
-	// 	}
-	// 	sgShaderDesc.uniform_blocks[i] = sgUniformBlock
-	// }
+	for i, block := range desc.UniformBlocks {
+		sgUniformBlock := C.sg_shader_uniform_block{
+			stage:                 C.sg_shader_stage(block.Stage),
+			size:                  C.uint32_t(block.Size),
+			hlsl_register_b_n:     C.uint8_t(block.HlslRegisterBN),
+			msl_buffer_n:          C.uint8_t(block.MslBufferN),
+			wgsl_group0_binding_n: C.uint8_t(block.WgslGroup0BindingN),
+			layout:                C.sg_uniform_layout(block.Layout),
+		}
+		for j, uniform := range block.GlslUniforms {
+			attrStr, uniformFree := Strs(uniform.GlslName)
+			defer uniformFree()
+			sgUniformBlock.glsl_uniforms[j] = C.sg_glsl_shader_uniform{
+				_type:       C.sg_uniform_type(uniform.Type),
+				array_count: C.uint16_t(uniform.ArrayCount),
+				glsl_name:   attrStr[0],
+			}
+		}
+		sgShaderDesc.uniform_blocks[i] = sgUniformBlock
+	}
 
 	// Convert storage buffers
 	// for i, buffer := range desc.StorageBuffers {
@@ -351,14 +355,38 @@ func ApplyBindings(bind *Bindings) {
 	C.sg_apply_bindings(&sgBindings)
 }
 
+func ApplyPipeline(pip Pipeline) { C.sg_apply_pipeline(C.sg_pipeline{id: C.uint32_t(pip.Id)}) }
+func ApplyUniform[T any](ubSlot int, data *T) {
+	toRange := C.sg_range{}
+	pinner := runtime.Pinner{}
+	pinner.Pin(data)
+	defer pinner.Unpin()
+	// Use reflection to check if T is a slice
+	v := reflect.ValueOf(data).Elem() // Dereference the pointer
+	if v.Kind() == reflect.Slice {
+		// Handle slice: get pointer to first element and total data size
+		if v.Len() > 0 {
+			toRange.ptr = unsafe.Pointer(v.Index(0).Addr().Pointer())
+			elemSize := v.Type().Elem().Size()
+			toRange.size = C.size_t(uintptr(v.Len()) * elemSize)
+		} else {
+			toRange.ptr = nil
+			toRange.size = 0
+		}
+	} else {
+		// Handle regular types: get pointer and size
+		toRange.ptr = unsafe.Pointer(data)
+		toRange.size = C.size_t(unsafe.Sizeof(*data))
+	}
+	C.sg_apply_uniforms(C.int(ubSlot), &toRange)
+}
+func EndPass()      { C.sg_end_pass() }
+func Shutdown()     { C.sg_shutdown() }
+func Commit()       { C.sg_commit() }
+func IsValid() bool { return bool(C.sg_isvalid()) }
 func Draw(baseElement, numElements, numInstances int) {
 	C.sg_draw(C.int(baseElement), C.int(numElements), C.int(numInstances))
 }
-func ApplyPipeline(pip Pipeline) { C.sg_apply_pipeline(C.sg_pipeline{id: C.uint32_t(pip.Id)}) }
-func EndPass()                   { C.sg_end_pass() }
-func Shutdown()                  { C.sg_shutdown() }
-func Commit()                    { C.sg_commit() }
-func IsValid() bool              { return bool(C.sg_isvalid()) }
 func QueryBufferOverflow(buf Buffer) bool {
 	return bool(C.sg_query_buffer_overflow(C.sg_buffer{id: C.uint32_t(buf.Id)}))
 }
