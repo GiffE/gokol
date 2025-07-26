@@ -306,20 +306,31 @@ func MakePipeline(desc *PipelineDesc) Pipeline {
 	strs, free := Strs(desc.Label)
 	defer free()
 	sgDesc := C.sg_pipeline_desc{
-		label:   strs[0],
-		compute: C.bool(desc.Compute),
-		shader:  C.sg_shader{C.uint32_t(desc.Shader.Id)},
-		// depth:       C.sg_depth_state{},
-		// stencil:     C.sg_stencil_state{},
-		color_count: C.int(desc.ColorCount),
-		//  sg_color_target_state colors[SG_MAX_COLOR_ATTACHMENTS];
-		primitive_type: C.sg_primitive_type(desc.PrimitiveType),
-		index_type:     C.sg_index_type(desc.IndexType),
-		cull_mode:      C.sg_cull_mode(desc.CullMode),
-		face_winding:   C.sg_face_winding(desc.FaceWinding),
-		sample_count:   C.int(desc.SampleCount),
-		//  sg_color blend_color;
+		label:                     strs[0],
+		compute:                   C.bool(desc.Compute),
+		shader:                    C.sg_shader{C.uint32_t(desc.Shader.Id)},
+		color_count:               C.int(desc.ColorCount),
+		primitive_type:            C.sg_primitive_type(desc.PrimitiveType),
+		index_type:                C.sg_index_type(desc.IndexType),
+		cull_mode:                 C.sg_cull_mode(desc.CullMode),
+		face_winding:              C.sg_face_winding(desc.FaceWinding),
+		sample_count:              C.int(desc.SampleCount),
 		alpha_to_coverage_enabled: C.bool(desc.AlphaToCoverageEnabled),
+		depth: C.sg_depth_state{
+			write_enabled: C.bool(desc.Depth.WriteEnabled),
+			compare:       C.sg_compare_func(desc.Depth.Bias),
+		},
+		layout: C.sg_vertex_layout_state{},
+		//  sg_color_target_state colors[SG_MAX_COLOR_ATTACHMENTS];
+		// stencil:     C.sg_stencil_state{},
+		//  sg_color blend_color;
+	}
+	for i, buf := range desc.Layout.Buffers {
+		sgDesc.layout.buffers[i] = C.sg_vertex_buffer_layout_state{
+			stride:    C.int(buf.Stride),
+			step_func: C.sg_vertex_step(buf.StepFunc),
+			step_rate: C.int(buf.StepRate),
+		}
 	}
 	for i, attr := range desc.Layout.Attrs {
 		sgDesc.layout.attrs[i] = C.sg_vertex_attr_state{
