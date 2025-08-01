@@ -219,127 +219,127 @@ Note that the keycode values are identical with GLFW.
 type Keycode uint32
 
 const (
-	KeycodeInvalid Keycode = iota
-	KeycodeSpace
-	KeycodeApostrophe // '
-	KeycodeComma      // ,
-	KeycodeMinus      // -
-	KeycodePeriod     // .
-	KeycodeSlash      // /
-	Keycode0
-	Keycode1
-	Keycode2
-	Keycode3
-	Keycode4
-	Keycode5
-	Keycode6
-	Keycode7
-	Keycode8
-	Keycode9
-	KeycodeSemicolon // ;
-	KeycodeEqual     // =
-	KeycodeA
-	KeycodeB
-	KeycodeC
-	KeycodeD
-	KeycodeE
-	KeycodeF
-	KeycodeG
-	KeycodeH
-	KeycodeI
-	KeycodeJ
-	KeycodeK
-	KeycodeL
-	KeycodeM
-	KeycodeN
-	KeycodeO
-	KeycodeP
-	KeycodeQ
-	KeycodeR
-	KeycodeS
-	KeycodeT
-	KeycodeU
-	KeycodeV
-	KeycodeW
-	KeycodeX
-	KeycodeY
-	KeycodeZ
-	KeycodeLeftBracket  // [
-	KeycodeBackslash    // \
-	KeycodeRightBracket // ]
-	KeycodeGraveAccent  // `
-	KeycodeWorld1       // non-US #1
-	KeycodeWorld2       // non-US #2
-	KeycodeEscape
-	KeycodeEnter
-	KeycodeTab
-	KeycodeBackspace
-	KeycodeInsert
-	KeycodeDelete
-	KeycodeRight
-	KeycodeLeft
-	KeycodeDown
-	KeycodeUp
-	KeycodePageUp
-	KeycodePageDown
-	KeycodeHome
-	KeycodeEnd
-	KeycodeCapsLock
-	KeycodeScrollLock
-	KeycodeNumLock
-	KeycodePrintScreen
-	KeycodePause
-	KeycodeF1
-	KeycodeF2
-	KeycodeF3
-	KeycodeF4
-	KeycodeF5
-	KeycodeF6
-	KeycodeF7
-	KeycodeF8
-	KeycodeF9
-	KeycodeF10
-	KeycodeF11
-	KeycodeF12
-	KeycodeF13
-	KeycodeF14
-	KeycodeF15
-	KeycodeF16
-	KeycodeF17
-	KeycodeF18
-	KeycodeF19
-	KeycodeF20
-	KeycodeF21
-	KeycodeF22
-	KeycodeF23
-	KeycodeF24
-	KeycodeF25
-	KeycodeKp0
-	KeycodeKp1
-	KeycodeKp2
-	KeycodeKp3
-	KeycodeKp4
-	KeycodeKp5
-	KeycodeKp6
-	KeycodeKp7
-	KeycodeKp8
-	KeycodeKp9
-	KeycodeKpDecimal
-	KeycodeKpDivide
-	KeycodeKpMultiply
-	KeycodeKpSubtract
-	KeycodeKpAdd
-	KeycodeKpEnter
-	KeycodeKpEqual
-	KeycodeLeftShift
-	KeycodeLeftControl
-	KeycodeLeftAlt
-	KeycodeLeftSuper
-	KeycodeRightShift
-	KeycodeRightControl
-	KeycodeRightAlt
-	KeycodeRightSuper
-	KeycodeMenu
+	KeycodeInvalid      Keycode = iota
+	KeycodeSpace                = 32
+	KeycodeApostrophe           = 39
+	KeycodeComma                = 44
+	KeycodeMinus                = 45
+	KeycodePeriod               = 46
+	KeycodeSlash                = 47
+	Keycode0                    = 48
+	Keycode1                    = 49
+	Keycode2                    = 50
+	Keycode3                    = 51
+	Keycode4                    = 52
+	Keycode5                    = 53
+	Keycode6                    = 54
+	Keycode7                    = 55
+	Keycode8                    = 56
+	Keycode9                    = 57
+	KeycodeSemicolon            = 59
+	KeycodeEqual                = 61
+	KeycodeA                    = 65
+	KeycodeB                    = 66
+	KeycodeC                    = 67
+	KeycodeD                    = 68
+	KeycodeE                    = 69
+	KeycodeF                    = 70
+	KeycodeG                    = 71
+	KeycodeH                    = 72
+	KeycodeI                    = 73
+	KeycodeJ                    = 74
+	KeycodeK                    = 75
+	KeycodeL                    = 76
+	KeycodeM                    = 77
+	KeycodeN                    = 78
+	KeycodeO                    = 79
+	KeycodeP                    = 80
+	KeycodeQ                    = 81
+	KeycodeR                    = 82
+	KeycodeS                    = 83
+	KeycodeT                    = 84
+	KeycodeU                    = 85
+	KeycodeV                    = 86
+	KeycodeW                    = 87
+	KeycodeX                    = 88
+	KeycodeY                    = 89
+	KeycodeZ                    = 90
+	KeycodeLeftBracket          = 91
+	KeycodeBackslash            = 92
+	KeycodeRightBracket         = 93
+	KeycodeGraveAccent          = 96
+	KeycodeWorld1               = 161
+	KeycodeWorld2               = 162
+	KeycodeEscape               = 256
+	KeycodeEnter                = 257
+	KeycodeTab                  = 258
+	KeycodeBackspace            = 259
+	KeycodeInsert               = 260
+	KeycodeDelete               = 261
+	KeycodeRight                = 262
+	KeycodeLeft                 = 263
+	KeycodeDown                 = 264
+	KeycodeUp                   = 265
+	KeycodePageUp               = 266
+	KeycodePageDown             = 267
+	KeycodeHome                 = 268
+	KeycodeEnd                  = 269
+	KeycodeCapsLock             = 280
+	KeycodeScrollLock           = 281
+	KeycodeNumLock              = 282
+	KeycodePrintScreen          = 283
+	KeycodePause                = 284
+	KeycodeF1                   = 290
+	KeycodeF2                   = 291
+	KeycodeF3                   = 292
+	KeycodeF4                   = 293
+	KeycodeF5                   = 294
+	KeycodeF6                   = 295
+	KeycodeF7                   = 296
+	KeycodeF8                   = 297
+	KeycodeF9                   = 298
+	KeycodeF10                  = 299
+	KeycodeF11                  = 300
+	KeycodeF12                  = 301
+	KeycodeF13                  = 302
+	KeycodeF14                  = 303
+	KeycodeF15                  = 304
+	KeycodeF16                  = 305
+	KeycodeF17                  = 306
+	KeycodeF18                  = 307
+	KeycodeF19                  = 308
+	KeycodeF20                  = 309
+	KeycodeF21                  = 310
+	KeycodeF22                  = 311
+	KeycodeF23                  = 312
+	KeycodeF24                  = 313
+	KeycodeF25                  = 314
+	KeycodeKp0                  = 320
+	KeycodeKp1                  = 321
+	KeycodeKp2                  = 322
+	KeycodeKp3                  = 323
+	KeycodeKp4                  = 324
+	KeycodeKp5                  = 325
+	KeycodeKp6                  = 326
+	KeycodeKp7                  = 327
+	KeycodeKp8                  = 328
+	KeycodeKp9                  = 329
+	KeycodeKpDecimal            = 330
+	KeycodeKpDivide             = 331
+	KeycodeKpMultiply           = 332
+	KeycodeKpSubtract           = 333
+	KeycodeKpAdd                = 334
+	KeycodeKpEnter              = 335
+	KeycodeKpEqual              = 336
+	KeycodeLeftShift            = 340
+	KeycodeLeftControl          = 341
+	KeycodeLeftAlt              = 342
+	KeycodeLeftSuper            = 343
+	KeycodeRightShift           = 344
+	KeycodeRightControl         = 345
+	KeycodeRightAlt             = 346
+	KeycodeRightSuper           = 347
+	KeycodeMenu                 = 348
 )
 
 type AndroidToolType uint8
